@@ -18,11 +18,11 @@ The project showcases the following functionality:
 
 This diagram shows the key components:
 
-<kbd><img src="images/architecture-small.jpeg" /></kbd>
+<kbd><img src="images/architecture.png" /></kbd>
 
 The next screenshot shows the web application. More screenshots are in the [images](images) folder.
 
-<kbd><img src="images/web-app-small.jpeg" /></kbd>
+<kbd><img src="images/web-app.png" /></kbd>
 
 ### Local Environment Setup
 
@@ -35,10 +35,9 @@ Prerequisites:
 
 * [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) 
 * [curl](https://curl.haxx.se/download.html)
-* sed
 * [docker](https://docs.docker.com/install/)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-* [minikube](https://kubernetes.io/docs/setup/minikube/) 
+* [minikube](LocalEnvironment.md) and Istio and Kiali
 
 Deploy (and redeploy):
 
@@ -55,18 +54,18 @@ $ scripts/show-urls.sh
 ```
 
 
-### Run the Demo
+### Demo - Web Application
 
 After running the scripts above, you will get a list of all URLs in the terminal.
 
-<kbd><img src="images/urls-small.jpeg" /></kbd>
+<kbd><img src="images/urls.png" /></kbd>
 
 Example URL to open the web app: http://192.168.99.100:31380
 
 Example API endpoint: http://192.168.99.100:31380/web-api/v1/getmultiple
 
 
-*Traffic Routing*
+### Demo - Traffic Routing
 
 In order to demonstrate traffic routing you can run the following commands. 20 % of the web-api API request to read articles will now return 10 instead of 5 articles which is version 2. 80 % of the requests are still showing only 5 articles which is version 1. This distribution is set in `istio/istio-ingress-service-web-api-v1-v2-80-20.yaml` (weight: 80 vs. weight: 20).
 
@@ -74,11 +73,10 @@ In order to demonstrate traffic routing you can run the following commands. 20 %
 $ scripts/deploy-web-api-java-jee-v2.sh
 $ scripts/deploy-istio-ingress-v1-v2.sh
 ```
-**BILD STIMMT NICHT MEHR**
 
-<kbd><img src="images/traffic-management-2.jpeg" /></kbd>
+<kbd><img src="images/traffic-management-1.png" /></kbd>
 
-*Resiliency*
+### Demo - Resiliency
 
 In order to demonstrate resiliency you can run the following command to delete the authors service:
 
@@ -92,12 +90,37 @@ In the next step delete the articles service:
 $ scripts/delete-web-api-java-jee.sh
 ```
 
-*Cleanup*
+### Demo - Metrics
 
-Run these commands to delete the cloud native starter components:
+The web-api service [produces](https://github.com/nheidloff/cloud-native-starter/blob/master/web-api-java-jee/src/main/java/com/ibm/webapi/apis/GetArticles.java) some application specific metrics. 
+
+Run 'scripts/show-urls.sh' to get the URL to display the [unformatted](images/prometheus-3.png) metrics of this microservice (for example http://192.168.99.100:31223/metrics/application) as well as the URL to generate load (for example http://192.168.99.100:31223/web-api/v1/getmultiple).
+
+In order to display the metrics with the Prometheus UI, Prometheus needs to be configured first:
+
+```
+$ scripts/configure-prometheus.sh
+```
+
+After this wait until the Prometheus pod has been restarted. Then run the command to forward the Prometheus port which is displayed as result of 'scripts/configure-prometheus.sh'.
+
+The metrics are displayed in the Prometheus UI (http://localhost:9090) when you search for 'web-api' or 'articles'.
+
+For example the [amount](images/prometheus-1.png) of times /web-api/v1/getmultiple has been invoked can be displayed as well as the [duration](images/prometheus-2.png) of these requests.
+
+### Cleanup
+
+Run the following command to delete all cloud-native-starter components from Istio.
+
+```
+$ scripts/delete-all.sh
+```
+
+You can also delete single components:
 
 ```
 $ scripts/delete-articles-java-jee.sh
+$ scripts/delete-articles-java-jee-quarkus.sh
 $ scripts/delete-web-api-java-jee.sh
 $ scripts/delete-authors-nodejs.sh
 $ scripts/delete-web-app-vuejs.sh
@@ -115,12 +138,25 @@ Here is a series of blog entries about this project:
 * [Developing resilient Microservices with Istio and MicroProfile](http://heidloff.net/article/resiliency-microservice-microprofile-java-istio)
 * [Using Quarkus to run Java Apps on Kubernetes](http://heidloff.net/article/quarkus-javaee-microprofile-kubernetes)
 * [Managing Microservices Traffic with Istio](https://haralduebele.blog/2019/03/11/managing-microservices-traffic-with-istio/)
+* [Web Application to demo Traffic Management with Istio](http://heidloff.net/article/sample-app-manage-microservices-traffic-istio)
 * [Implementing and documenting REST APIs with JavaEE](http://heidloff.net/article/rest-apis-microprofile-javaee-jaxrs)
-* Invoking REST APIs (functionality: done / blog: to be done)
-* Distributed logging (functionality: almost done / blog: to be done)
-* Monitoring and metrics (functionality: to be done / blog: to be done)
-* Authentication and authorization (functionality: to be done / blog: to be done)
-* Configuration (functionality: almost done / blog: to be done)
+* [Invoking REST APIs from Java Microservices](http://heidloff.net/invoke-rest-apis-java-microprofile-microservice)
+* [Prometheus Metrics for MicroProfile Microservices in Istio](http://heidloff.net/article/prometheus-metrics-microprofile-microservices-istio/)
+* Deployment to IBM Cloud
+* Distributed logging with IBM Log Analysis with LogDNA
+* Monitoring with IBM Cloud Monitoring with Sysdig
+* Istio Healthchecks for MicroProfile Microservices 
+* cf push-like Deployments of Microservices via Scripts
+* Template to create new Java EE Microservice
+* Clean-ish Architecture for Java EE Microservices
+* Configuration of MicroProfile Microservices in Istio
+* Authentication and Authorization
+* Displaying Metrics in Grafana and Kiali
+* SQL PersistenceSQL via JPA and JDBC
+* Reducing the Size of the Open Liberty Images
+* Sample stateful Microservice
+* Lightweight API Management
+* Sample Microservices with Spring and Micronaut
 
 Here is more information about Microservices, MicroProfile and Istio:
 
